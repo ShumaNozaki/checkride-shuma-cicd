@@ -1,0 +1,117 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: checkride-shuma-f-pipeline
+  annotations:
+    app.openshift.io/runtime: node.js
+spec:
+  # ワークスペースの定義
+  # 各タスク間でソースコードなどのファイルを共有するための領域
+  workspaces:
+    - name: pipeline-shared-data
+      description: |
+        This workspace stores the cloned repository and is available to all steps
+
+
+  # パラメータの定義
+  # イメージ名など、パイプライン全体で利用する変数を指定
+  params:
+    - name: image-repo
+      type: string
+      description: Docker image name
+      default: quay.io/sh_m_04/checkride-shuma-f
+      # 注意：quay.io に push する際、リポジトリ名の設定ミスに注意
+
+
+  # タスクの定義（処理の流れ）
+
+  tasks:
+
+    # 1. Git リポジトリをクローン
+    - name: clone-repository
+      taskRef:
+        kind: Task
+        name: git-clone
+      params:
+        - name: url
+          value: https://github.com/ShumaNozaki/checkride-shuma-frontend
+        - name: revision 
+          value: main
+      workspaces:
+        - name: output
+          workspace: pipeline-shared-data
+
+    # 2. npm install (依存関係のインストール)
+    - name: install-dependencies
+      taskRef:
+        name: npm
+      params:
+        - name: ARGS
+          value:
+            - clean-install
+        - name: IMAGE 
+          value: "docker.io/library/node:22"  # Dockerfile の Node.js バージョンに合わせる
+      workspaces:
+        - name: source
+          workspace: pipeline-shared-data
+      runAfter:
+        - clone-repository  # リポジトリクローン後に実行
+
+    # 3. npm test を実行（ユニットテスト）
+    - name: run-tests
+      taskRef:
+        name: npm
+      params:
+        - name: ARGS
+          value:
+            - test
+      workspaces:
+        - name: source
+          workspace: pipeline-shared-data
+      runAfter:
+        - install-dependencies  # 依存関係インストール後に実行
+
+    # 4. コンテナイメージのビルドとタグ付け
+    - name: build-image
+      taskRef:
+        kind: Task
+        name: buildah
+      params:
+        - name: IMAGE
+          value: "$(params.image-repo):$(tasks.clone-repository.results.commit)"
+          # Git のコミットハッシュをタグに使うことで一意性を確保
+      workspaces:
+        - name: source
+          workspace: pipeline-shared-data
+      runAfter:
+        - run-tests  # テスト完了後に実行
+
+    # 5. kustomize による Kubernetes マニフェストのビルド
+    - name: kustomize-build
+      taskRef:
+        kind: Task
+        name: kustomize-build
+      params:
+        - name: image-with-tag
+          value: "$(params.image-repo):$(tasks.clone-repository.results.commit)"
+      workspaces:
+        - name: source
+          workspace: pipeline-shared-data
+      runAfter:
+        - build-image  # イメージビルド後に実行
+
+    # 6. テスト環境へのデプロイ（確認用）
+    - name: test-deploy
+      taskRef:
+        kind: Task
+        name: test-deploy
+      params:
+        - name: app-namespace
+          value: checkride-shuma-f
+        - name: app-name
+          value: checkride-shuma-frontend
+      workspaces:
+        - name: source
+          workspace: pipeline-shared-data
+      runAfter:
+        - kustomize-build  # マニフェスト生成後に実行

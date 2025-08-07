@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: checkride-shuma-f-pipeline-run-
+spec:
+  pipelineRef:
+    name: checkride-shuma-f-pipeline
+  taskRunTemplate:
+    serviceAccountName: build-bot
+  taskRunSpecs:
+    - pipelineTaskName: clone-repository
+      serviceAccountName: github-bot
+      podTemplate:
+        securityContext:
+          # runAsUser: 65532
+          # runAsGroup: 65532
+          fsGroup: 65532
+  workspaces:
+    - name: pipeline-shared-data
+      persistentVolumeClaim:
+        claimName: shuma-pvc
