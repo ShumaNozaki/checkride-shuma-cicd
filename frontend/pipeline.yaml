@@ -48,7 +48,7 @@ spec:
       params:
         - name: ARGS
           value:
-            - clean-install
+            - install
         - name: IMAGE 
           value: "docker.io/library/node:22"  # Dockerfile の Node.js バージョンに合わせる
       workspaces:
@@ -65,6 +65,8 @@ spec:
         - name: ARGS
           value:
             - test
+        - name: IMAGE 
+          value: "docker.io/library/node:22" 
       workspaces:
         - name: source
           workspace: pipeline-shared-data
@@ -109,7 +111,7 @@ spec:
         - name: app-namespace
           value: checkride-shuma-f
         - name: app-name
-          value: checkride-shuma-frontend
+          value: checkride-shuma-f
       workspaces:
         - name: source
           workspace: pipeline-shared-data

@@ -1,0 +1,11 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: checkride-shuma-f-el-route
+spec:
+  port:
+    targetPort: http-listener
+  to:
+    kind: Service
+    name: el-checkride-shuma-f
+    weight: 100

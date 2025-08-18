@@ -1,0 +1,39 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: checkride-shuma-f-triggertemplate
+spec:
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: checkride-shuma-f-pipeline-run-
+      spec:
+        pipelineRef:
+          name: checkride-shuma-f-pipeline
+        # serviceAccountName: build-bot
+        taskRunTemplate:
+          serviceAccountName: build-bot
+        taskRunSpecs: #特定のタスクランを稼働させる時の条件みたいな感じ
+          - pipelineTaskName: clone-repository #Cloneするタスクの名前（さっきyamlファイルに書いたやつ）
+            serviceAccountName: github-bot
+            podTemplate:
+              securityContext: #ドキュメント参照
+                fsGroup: 65532 
+        workspaces:
+          - name: pipeline-shared-data
+            persistentVolumeClaim:
+              claimName: shuma-pvc
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: checkride-shuma-f-triggerbinding
+spec:
+  params:
+    - name: namespace
+      value: checkride-shuma-f
+    - name: gitrepositoryurl
+      value: $(body.repository.url)
+    - name: gitrepositoryname
+      value: $(body.repository.name)
