@@ -1,0 +1,17 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: checkride-shuma-b
+spec:
+  serviceAccountName: tekton-triggers-sa
+  triggers:
+  - name: express-sample-app-deploy
+    interceptors:
+    - github:
+        eventTypes: ["push"]
+    - cel:
+        filter: "body.repository.name == 'checkride-shuma-backend' && body.ref.split('/')[2] == 'main'"
+    bindings:
+    - ref: checkride-shuma-b-triggerbinding
+    template:
+      ref: checkride-shuma-b-triggertemplate

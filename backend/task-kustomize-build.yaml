@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: kustomize-build
+spec:
+  params:
+    - name: image-with-tag
+      description: efine it as image:tag.
+    - name: app-name
+      description: app name
+      default: checkride-shuma-backend
+  workspaces:
+    - name: source
+      description: contains the cloned git repo
+  steps:
+    - name: kustomize-build
+      image: docker.io/enzobarrett/kustomize:latest
+      workingDir: $(workspaces.source.path)
+      env:
+      - name: SPEECH_TO_TEXT_APIKEY
+        valueFrom:
+          secretKeyRef:
+            name: speech-to-text-api-secret
+            key: api-key
+      - name: SPEECH_TO_TEXT_URL
+        valueFrom:
+          secretKeyRef:
+            name: speech-to-text-api-secret
+            key: service-url
+
+      script: |
+        #!/bin/sh
+        cd k8s
+        kustomize edit set image $(params.app-name)=$(params.image-with-tag)
+        kustomize build > manifests.yaml
+        if [ -f manifests.yaml ]; then
+          echo "manifests.yaml successfully generated"
+        else
+          echo "ERROR: manifests.yaml not generated"
+          exit 1
+        fi
