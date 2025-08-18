@@ -22,8 +22,13 @@ spec:
                 fsGroup: 65532 
         workspaces:
           - name: pipeline-shared-data
-            persistentVolumeClaim:
-              claimName: shuma-pvc
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteMany
+                resources:
+                  requests:
+                    storage: 3Gi  # 空間が大きい方がええよ
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
