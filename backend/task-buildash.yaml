@@ -97,16 +97,16 @@ spec:
     - name: PARAM_SKIP_PUSH
       value: $(params.SKIP_PUSH)
 
-    - name: SPEECH_TO_TEXT_APIKEY
-      valueFrom:
-        secretKeyRef:
-          name: speech-to-text-api-secret
-          key: api-key
-    - name: SPEECH_TO_TEXT_URL
-      valueFrom:
-        secretKeyRef:
-          name: speech-to-text-api-secret
-          key: service-url
+    # - name: SPEECH_TO_TEXT_APIKEY
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: speech-to-text-api-secret
+    #       key: SPEECH_TO_TEXT_APIKEY
+    # - name: SPEECH_TO_TEXT_URL
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: speech-to-text-api-secret
+    #       key: SPEECH_TO_TEXT_URL
 
     args:
     - $(params.BUILD_ARGS[*])
