@@ -18,17 +18,17 @@ spec:
     - name: deploy
       image: docker.io/enzobarrett/kubectl:latest
       workingDir: $(workspaces.source.path)
-      # env:
-      # - name: SPEECH_TO_TEXT_APIKEY
-      #   valueFrom:
-      #     secretKeyRef:
-      #       name: speech-to-text-api-secret
-      #       key: SPEECH_TO_TEXT_APIKEY
-      # - name: SPEECH_TO_TEXT_URL
-      #   valueFrom:
-      #     secretKeyRef:
-      #       name: speech-to-text-api-secret
-      #       key: SPEECH_TO_TEXT_URL
+      env:
+      - name: SPEECH_TO_TEXT_APIKEY
+        valueFrom:
+          secretKeyRef:
+            name: speech-to-text-api-secret
+            key: SPEECH_TO_TEXT_APIKEY
+      - name: SPEECH_TO_TEXT_URL
+        valueFrom:
+          secretKeyRef:
+            name: speech-to-text-api-secret
+            key: SPEECH_TO_TEXT_URL
 
       script: |
         #!/bin/sh

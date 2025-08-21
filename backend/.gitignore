@@ -2,3 +2,4 @@ secret-sh-m-04.yaml
 secret-git.yaml
 secret-webhook.yaml
 secret-speech-to-text-api.yaml
+.env

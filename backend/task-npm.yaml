@@ -29,25 +29,38 @@ spec:
       description: The npm goals you want to run.
     - name: IMAGE
       type: string
-      default: "docker.io/library/node:18-alpine"
+      default: "node:20"
       description: The node image you want to use.
   steps:
     - name: npm-run
       image: $(params.IMAGE)
-      command:
-        - "npm"
-      args:
-        - $(params.ARGS)
+      # script: |
+      #   apk update && apk add ffmpeg
+      #   npm install
+      #   npm test
+      script: |
+        apt-get update && apt-get install -y ffmpeg
+        export FFMPEG_PATH=/usr/bin/ffmpeg
+        npm ci
+        npm test
+
       workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
-      # env:
-      # - name: SPEECH_TO_TEXT_APIKEY
-      #   valueFrom:
-      #     secretKeyRef:
-      #       name: speech-to-text-api-secret
-      #       key: SPEECH_TO_TEXT_APIKEY
-      # - name: SPEECH_TO_TEXT_URL
-      #   valueFrom:
-      #     secretKeyRef:
-      #       name: speech-to-text-api-secret
-      #       key: SPEECH_TO_TEXT_URL
+      env:
+        - name: SPEECH_TO_TEXT_APIKEY
+          valueFrom:
+            secretKeyRef:
+              name: speech-to-text-api-secret
+              key: SPEECH_TO_TEXT_APIKEY
+        - name: SPEECH_TO_TEXT_URL
+          valueFrom:
+            secretKeyRef:
+              name: speech-to-text-api-secret
+              key: SPEECH_TO_TEXT_URL
+
+
+      # command:
+      #   - "npm"
+      # args:
+      #   - $(params.ARGS)
+
 
